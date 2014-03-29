@@ -2,8 +2,10 @@ if (typeof require === 'function' && typeof process !== 'undefined') {
   jscritic(require('fs').readFileSync(process.argv[2], 'utf-8'));
 }
 
+// main function that checks for content's behavior
 function jscritic(content) {
-
+    
+  // global vars that will be ignored
   var globalVarsToIgnore = [
     'NaN',
     'Array'             ,
@@ -358,6 +360,7 @@ function jscritic(content) {
     'requestAnimationFrame'
   ];
 
+  // load assets i.e. JSHINT, uglify and underscorejs
   var JSHINT = typeof require === 'function' ? require('jshint').JSHINT : window.JSHINT,
       uglify = typeof require === 'function' ? require('uglify-js') : window.uglify,
       _ = typeof require === 'function' ? require('underscore') : window._;
@@ -375,6 +378,7 @@ function jscritic(content) {
 
   console.log('\n');
 
+  // Does it browser sniff?
   (result.globals || []).forEach(function(name) {
     if (name === 'navigator') {
       // pretty weak sauce but what can we do...
@@ -392,6 +396,7 @@ function jscritic(content) {
   console.log('- Does it browser sniff?\t\t',
     jscriticResult.hasBrowserSniff ? 'Yep' : 'Nope');
 
+  // Does it extend native objects?
   console.log(jscriticResult.browserSniffExcerpt || '');
 
   jscriticResult.extendedNatives = [ ];
@@ -409,6 +414,7 @@ function jscritic(content) {
       ? ('Yep (' + jscriticResult.extendedNatives + ')')
       : 'Nope');
 
+  // Does it use document.write?
   (result.errors || []).forEach(function(e) {
     if (e.code === 'W060') {
       jscriticResult.hasDocumentWrite = true;
@@ -418,6 +424,7 @@ function jscritic(content) {
   console.log('\n- Does it use `document.write`?\t\t',
     jscriticResult.hasDocumentWrite ? 'Yep'  : 'Nope');
 
+  // Does it use eval?
   (result.errors || []).forEach(function(e) {
     if (e.code === 'W061') {
       jscriticResult.hasEval = true;
@@ -430,6 +437,7 @@ function jscritic(content) {
 
   console.log(jscriticResult.evalExcerpt);
 
+  // Does it use ES6 features?
   (result.errors || []).forEach(function(e) {
     if (e.code === 'W119') {
       jscriticResult.doesUseES6 = true;
@@ -439,6 +447,7 @@ function jscritic(content) {
   console.log('\n- Does it use ES6 features?\t\t',
     jscriticResult.doesUseES6 ? 'Yep' : 'Nope');
 
+  // Does it use Mozilla-only features?
   jscriticResult.mozillaOnlyFeatures = [ ];
 
   (result.errors || []).forEach(function(e) {
@@ -455,6 +464,7 @@ function jscritic(content) {
       ? 'Yep (' + jscriticResult.mozillaOnlyFeatures.join(', ') + ')'
       : 'Nope');
 
+  // Does it have IE incompatibilities?
   jscriticResult.ieIncompats = [ ];
   (result.errors || []).forEach(function(e) {
     if (e.code === 'W070' /* last comma */ ||
@@ -471,6 +481,7 @@ function jscritic(content) {
       ? ('Yep (' + jscriticResult.ieIncompats.join(', ') + ')')
       : 'Nope');
 
+  // How many global variables?
   var globals = _.difference(_.unique(result.globals || []), globalVarsToIgnore);
 
   var leakedVars = [ ];
@@ -491,12 +502,14 @@ function jscritic(content) {
       ? ('(' + jscriticResult.realGlobals.join(', ') + ')')
       : '');
 
+  // How many unused variables?
   jscriticResult.unused = _.unique((result.unused || []).map(function(o){ return o.name }));
 
   console.log('\n- How many unused variables?\t\t',
     jscriticResult.unused.length,
     jscriticResult.unused.length ? ('(' + jscriticResult.unused.join(', ') + ')') : '');
 
+  // Total size
   console.log('\nTotal size:\t\t\t\t',
     (content.length / 1024).toFixed(2) + 'KB');
 
@@ -505,6 +518,7 @@ function jscritic(content) {
   }
   catch(err) { }
 
+  // Minified size
   console.log('Minified size:\t\t\t\t',
     jscriticResult.minified
       ? ((jscriticResult.minified.length / 1024).toFixed(2) + 'KB')
